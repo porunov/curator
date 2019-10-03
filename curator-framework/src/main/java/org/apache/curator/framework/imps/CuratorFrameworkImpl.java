@@ -565,10 +565,10 @@ public class CuratorFrameworkImpl implements CuratorFramework
     }
 
     @Override
-    public RemoveWatchesBuilder watches()
+    public WatchesBuilder watches()
     {
         Preconditions.checkState(!isZk34CompatibilityMode(), "Remove watches APIs are not support when running in ZooKeeper 3.4 compatibility mode");
-        return new RemoveWatchesBuilderImpl(this);
+        return new WatchesBuilderImpl(this);
     }
 
     protected void internalSync(CuratorFrameworkImpl impl, String path, Object context)

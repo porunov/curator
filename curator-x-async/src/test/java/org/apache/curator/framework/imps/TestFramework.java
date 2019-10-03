@@ -30,6 +30,8 @@ import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.curator.retry.RetryOneTime;
 import org.apache.curator.test.BaseClassForTests;
 import org.apache.curator.test.Timing;
+import org.apache.curator.test.compatibility.Timing2;
+import org.apache.curator.test.compatibility.Zk35MethodInterceptor;
 import org.apache.curator.utils.CloseableUtils;
 import org.apache.curator.utils.ZKPaths;
 import org.apache.curator.x.async.AsyncCuratorFramework;
@@ -37,8 +39,11 @@ import org.apache.curator.x.async.AsyncStage;
 import org.apache.curator.x.async.api.CreateOption;
 import org.apache.curator.x.async.api.DeleteOption;
 import org.apache.curator.x.async.api.ExistsOption;
+import org.apache.zookeeper.AddWatchMode;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.WatchedEvent;
+import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooDefs;
 import org.apache.zookeeper.data.ACL;
 import org.testng.Assert;
@@ -651,6 +656,60 @@ public class TestFramework extends BaseClassForTests
             Assert.assertTrue(watchedLatch.await(10, TimeUnit.SECONDS));
             byte[] checkData = async.getData().forPath("/test").toCompletableFuture().get();
             Assert.assertEquals(checkData, data2);
+        }
+        finally
+        {
+            CloseableUtils.closeQuietly(client);
+        }
+    }
+
+    @Test(groups = Zk35MethodInterceptor.zk35Group)
+    public void testPersistentRecursiveWatch() throws Exception
+    {
+        Timing2 timing = new Timing2();
+        CuratorFramework client = CuratorFrameworkFactory.newClient(server.getConnectString(), new RetryOneTime(1));
+        try
+        {
+            client.start();
+            AsyncCuratorFramework async = AsyncCuratorFramework.wrap(client);
+
+            BlockingQueue<WatchedEvent> events = new LinkedBlockingQueue<>();
+            Watcher watcher = events::add;
+            async.addWatch().usingWatcher(watcher).forPath("/top/main").toCompletableFuture().get();
+
+            client.create().creatingParentsIfNeeded().forPath("/top/main/a");
+            Assert.assertEquals(timing.takeFromQueue(events).getPath(), "/top/main");
+            Assert.assertEquals(timing.takeFromQueue(events).getPath(), "/top/main/a");
+            client.setData().forPath("/top/main/a", "foo".getBytes());
+            Assert.assertEquals(timing.takeFromQueue(events).getType(), Watcher.Event.EventType.NodeDataChanged);
+            client.setData().forPath("/top/main", "bar".getBytes());
+            Assert.assertEquals(timing.takeFromQueue(events).getPath(), "/top/main");
+        }
+        finally
+        {
+            CloseableUtils.closeQuietly(client);
+        }
+    }
+
+    @Test(groups = Zk35MethodInterceptor.zk35Group)
+    public void testPersistentWatch() throws Exception
+    {
+        Timing2 timing = new Timing2();
+        CuratorFramework client = CuratorFrameworkFactory.newClient(server.getConnectString(), new RetryOneTime(1));
+        try
+        {
+            client.start();
+            AsyncCuratorFramework async = AsyncCuratorFramework.wrap(client);
+
+            BlockingQueue<WatchedEvent> events = new LinkedBlockingQueue<>();
+            Watcher watcher = events::add;
+            async.addWatch().withMode(AddWatchMode.PERSISTENT).usingWatcher(watcher).forPath("/top/main").toCompletableFuture().get();
+
+            client.create().creatingParentsIfNeeded().forPath("/top/main/a");
+            Assert.assertEquals(timing.takeFromQueue(events).getPath(), "/top/main");
+            client.setData().forPath("/top/main/a", "foo".getBytes());
+            client.setData().forPath("/top/main", "bar".getBytes());
+            Assert.assertEquals(timing.takeFromQueue(events).getPath(), "/top/main");
         }
         finally
         {

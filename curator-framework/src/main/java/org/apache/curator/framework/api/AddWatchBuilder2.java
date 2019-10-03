@@ -16,17 +16,9 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.curator.utils;
+package org.apache.curator.framework.api;
 
-import org.apache.zookeeper.Watcher;
-import org.apache.zookeeper.ZooKeeper;
-import org.apache.zookeeper.admin.ZooKeeperAdmin;
-
-public class DefaultZookeeperFactory implements ZookeeperFactory
+public interface AddWatchBuilder2 extends
+    Backgroundable<AddWatchable<Pathable<Void>>>, AddWatchable<Pathable<Void>>
 {
-    @Override
-    public ZooKeeper newZooKeeper(String connectString, int sessionTimeout, Watcher watcher, boolean canBeReadOnly) throws Exception
-    {
-        return new ZooKeeperAdmin(connectString, sessionTimeout, watcher, canBeReadOnly);
-    }
 }

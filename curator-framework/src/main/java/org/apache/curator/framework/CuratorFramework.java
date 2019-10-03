@@ -196,7 +196,7 @@ public interface CuratorFramework extends Closeable
      * Start a remove watches builder.
      * @return builder object
      */
-    public RemoveWatchesBuilder watches();
+    public WatchesBuilder watches();
 
     /**
      * Returns the listenable interface for the Connect State

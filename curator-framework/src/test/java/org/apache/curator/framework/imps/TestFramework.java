@@ -37,6 +37,7 @@ import org.apache.curator.utils.CloseableUtils;
 import org.apache.curator.utils.EnsurePath;
 import org.apache.curator.utils.ZKPaths;
 import org.apache.curator.utils.ZookeeperFactory;
+import org.apache.zookeeper.AddWatchMode;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
@@ -1259,6 +1260,56 @@ public class TestFramework extends BaseClassForTests
             //This should create a node in the form of "/test/00000001"
             String path = client.create().withMode(CreateMode.PERSISTENT_SEQUENTIAL).forPath("/test/");
             Assert.assertTrue(path.startsWith("/test/"));
+        }
+        finally
+        {
+            CloseableUtils.closeQuietly(client);
+        }
+    }
+
+    @Test(groups = Zk35MethodInterceptor.zk35Group)
+    public void testPersistentRecursiveWatch() throws Exception
+    {
+        Timing2 timing = new Timing2();
+        CuratorFramework client = CuratorFrameworkFactory.newClient(server.getConnectString(), new RetryOneTime(1));
+        client.start();
+        try
+        {
+            BlockingQueue<WatchedEvent> events = new LinkedBlockingQueue<>();
+            Watcher watcher = events::add;
+            client.watches().add().usingWatcher(watcher).forPath("/top/main");
+
+            client.create().creatingParentsIfNeeded().forPath("/top/main/a");
+            Assert.assertEquals(timing.takeFromQueue(events).getPath(), "/top/main");
+            Assert.assertEquals(timing.takeFromQueue(events).getPath(), "/top/main/a");
+            client.setData().forPath("/top/main/a", "foo".getBytes());
+            Assert.assertEquals(timing.takeFromQueue(events).getType(), Watcher.Event.EventType.NodeDataChanged);
+            client.setData().forPath("/top/main", "bar".getBytes());
+            Assert.assertEquals(timing.takeFromQueue(events).getPath(), "/top/main");
+        }
+        finally
+        {
+            CloseableUtils.closeQuietly(client);
+        }
+    }
+
+    @Test(groups = Zk35MethodInterceptor.zk35Group)
+    public void testPersistentWatch() throws Exception
+    {
+        Timing2 timing = new Timing2();
+        CuratorFramework client = CuratorFrameworkFactory.newClient(server.getConnectString(), new RetryOneTime(1));
+        client.start();
+        try
+        {
+            BlockingQueue<WatchedEvent> events = new LinkedBlockingQueue<>();
+            Watcher watcher = events::add;
+            client.watches().add().withMode(AddWatchMode.PERSISTENT).usingWatcher(watcher).forPath("/top/main");
+
+            client.create().creatingParentsIfNeeded().forPath("/top/main/a");
+            Assert.assertEquals(timing.takeFromQueue(events).getPath(), "/top/main");
+            client.setData().forPath("/top/main/a", "foo".getBytes());
+            client.setData().forPath("/top/main", "bar".getBytes());
+            Assert.assertEquals(timing.takeFromQueue(events).getPath(), "/top/main");
         }
         finally
         {

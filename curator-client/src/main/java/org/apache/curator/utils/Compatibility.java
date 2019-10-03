@@ -31,6 +31,7 @@ import java.lang.reflect.Method;
 public class Compatibility
 {
     private static final boolean hasZooKeeperAdmin;
+    private static final boolean hasPersistentWatches;
     private static final Method queueEventMethod;
     private static final Logger logger = LoggerFactory.getLogger(Compatibility.class);
 
@@ -61,6 +62,19 @@ public class Compatibility
             LoggerFactory.getLogger(Compatibility.class).info("Using emulated InjectSessionExpiration");
         }
         queueEventMethod = localQueueEventMethod;
+
+        boolean localHasPersistentWatches;
+        try
+        {
+            Class.forName("org.apache.zookeeper.AddWatchMode");
+            localHasPersistentWatches = true;
+        }
+        catch ( ClassNotFoundException e )
+        {
+            localHasPersistentWatches = false;
+            logger.info("Running without persistent watches");
+        }
+        hasPersistentWatches = localHasPersistentWatches;
     }
 
     /**
@@ -71,6 +85,17 @@ public class Compatibility
     public static boolean isZK34()
     {
         return !hasZooKeeperAdmin;
+    }
+
+    /**
+     * Return true of persistent watches are available in the
+     * ZooKeeper library being used.
+     *
+     * @return true/false
+     */
+    public static boolean hasPersistentWatches()
+    {
+        return hasPersistentWatches;
     }
 
     /**
