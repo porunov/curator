@@ -18,16 +18,16 @@
   */
  package org.apache.curator.x.async.api;
 
- import org.apache.curator.framework.api.AddPersistentWatchable;
+ import org.apache.curator.framework.api.AddWatchable;
  import org.apache.curator.x.async.AsyncStage;
 
- public interface AsyncPersistentWatchBuilder extends AddPersistentWatchable<AsyncPathable<AsyncStage<Void>>>
+ public interface AsyncAddWatchBuilder extends AddWatchable<AsyncPathable<AsyncStage<Void>>>
  {
      /**
       * ZooKeeper persistent watches can optionally be recursive. See
-      * {@link org.apache.zookeeper.ZooKeeper#addPersistentWatch(String, org.apache.zookeeper.Watcher, boolean)}
+      * {@link org.apache.zookeeper.ZooKeeper#addWatch(String, org.apache.zookeeper.Watcher, org.apache.zookeeper.AddWatchMode)}
       *
       * @return this
       */
-     AddPersistentWatchable<AsyncPathable<AsyncStage<Void>>> recursive();
+     AddWatchable<AsyncPathable<AsyncStage<Void>>> recursive();
  }

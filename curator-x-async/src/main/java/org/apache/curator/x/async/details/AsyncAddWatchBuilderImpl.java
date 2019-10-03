@@ -18,34 +18,35 @@
   */
  package org.apache.curator.x.async.details;
 
- import org.apache.curator.framework.api.AddPersistentWatchable;
- import org.apache.curator.framework.api.CuratorWatcher;
- import org.apache.curator.framework.imps.AddPersistentWatchBuilderImpl;
- import org.apache.curator.framework.imps.CuratorFrameworkImpl;
- import org.apache.curator.framework.imps.Watching;
- import org.apache.curator.x.async.AsyncStage;
- import org.apache.curator.x.async.api.AsyncPathable;
- import org.apache.curator.x.async.api.AsyncPersistentWatchBuilder;
- import org.apache.zookeeper.Watcher;
+import org.apache.curator.framework.api.AddWatchable;
+import org.apache.curator.framework.api.CuratorWatcher;
+import org.apache.curator.framework.imps.AddWatchBuilderImpl;
+import org.apache.curator.framework.imps.CuratorFrameworkImpl;
+import org.apache.curator.framework.imps.Watching;
+import org.apache.curator.x.async.AsyncStage;
+import org.apache.curator.x.async.api.AsyncAddWatchBuilder;
+import org.apache.curator.x.async.api.AsyncPathable;
+import org.apache.zookeeper.AddWatchMode;
+import org.apache.zookeeper.Watcher;
 
- import static org.apache.curator.x.async.details.BackgroundProcs.ignoredProc;
- import static org.apache.curator.x.async.details.BackgroundProcs.safeCall;
+import static org.apache.curator.x.async.details.BackgroundProcs.ignoredProc;
+import static org.apache.curator.x.async.details.BackgroundProcs.safeCall;
 
- class AsyncPersistentWatchBuilderImpl implements AsyncPersistentWatchBuilder, AddPersistentWatchable<AsyncPathable<AsyncStage<Void>>>, AsyncPathable<AsyncStage<Void>>
+ class AsyncAddWatchBuilderImpl implements AsyncAddWatchBuilder, AddWatchable<AsyncPathable<AsyncStage<Void>>>, AsyncPathable<AsyncStage<Void>>
  {
      private final CuratorFrameworkImpl client;
      private final Filters filters;
      private Watching watching = null;
      private boolean recursive = false;
 
-     AsyncPersistentWatchBuilderImpl(CuratorFrameworkImpl client, Filters filters)
+     AsyncAddWatchBuilderImpl(CuratorFrameworkImpl client, Filters filters)
      {
          this.client = client;
          this.filters = filters;
      }
 
      @Override
-     public AddPersistentWatchable<AsyncPathable<AsyncStage<Void>>> recursive()
+     public AddWatchable<AsyncPathable<AsyncStage<Void>>> recursive()
      {
          recursive = true;
          return this;
@@ -69,7 +70,7 @@
      public AsyncStage<Void> forPath(String path)
      {
          BuilderCommon<Void> common = new BuilderCommon<>(filters, ignoredProc);
-         AddPersistentWatchBuilderImpl builder = new AddPersistentWatchBuilderImpl(client, watching, common.backgrounding, recursive);
+         AddWatchBuilderImpl builder = new AddWatchBuilderImpl(client, watching, common.backgrounding, recursive ? AddWatchMode.PERSISTENT_RECURSIVE : AddWatchMode.PERSISTENT);
          return safeCall(common.internalCallback, () -> builder.forPath(path));
      }
  }
