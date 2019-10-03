@@ -199,6 +199,12 @@ public interface CuratorFramework extends Closeable
     public WatchesBuilder watches();
 
     /**
+     * Start an add watch builder
+     *
+     * @return builder object
+     */
+    public AddWatchBuilder addWatch();
+    /**
      * Returns the listenable interface for the Connect State
      *
      * @return listenable

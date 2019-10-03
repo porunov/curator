@@ -571,6 +571,13 @@ public class CuratorFrameworkImpl implements CuratorFramework
         return new WatchesBuilderImpl(this);
     }
 
+    @Override
+    public AddWatchBuilder addWatch()
+    {
+        Preconditions.checkState(!isZk34CompatibilityMode(), "Persistent watches APIs are not support when running in ZooKeeper 3.4 compatibility mode");
+        return new AddWatchBuilderImpl(this);
+    }
+
     protected void internalSync(CuratorFrameworkImpl impl, String path, Object context)
     {
         BackgroundOperation<String> operation = new BackgroundSyncImpl(impl, context);
