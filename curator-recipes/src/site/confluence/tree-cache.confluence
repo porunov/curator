@@ -1,5 +1,7 @@
 h1. Tree Cache
 
+*Note: * TreeCache has been deprecated for use in ZooKeeper 3.6\+. You should use [[Curator Cache|curator-cache.html]] instead.
+
 h2. Description
 A utility that attempts to keep all data from all children of a ZK path locally cached. This class will watch the ZK path, respond to update/create/delete events, pull down the data, etc. You can register a listener that will get notified when changes occur.
 

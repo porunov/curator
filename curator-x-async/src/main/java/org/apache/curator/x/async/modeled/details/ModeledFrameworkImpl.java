@@ -26,7 +26,6 @@ import org.apache.curator.framework.api.CuratorEvent;
 import org.apache.curator.framework.api.UnhandledErrorListener;
 import org.apache.curator.framework.api.transaction.CuratorOp;
 import org.apache.curator.framework.api.transaction.CuratorTransactionResult;
-import org.apache.curator.utils.ThreadUtils;
 import org.apache.curator.x.async.AsyncCuratorFramework;
 import org.apache.curator.x.async.AsyncStage;
 import org.apache.curator.x.async.WatchMode;
@@ -113,14 +112,14 @@ public class ModeledFrameworkImpl<T> implements ModeledFramework<T>
     @Override
     public CachedModeledFramework<T> cached()
     {
-        return cached(ThreadUtils.newSingleThreadExecutor("CachedModeledFramework"));
+        return cached(null);
     }
 
     @Override
     public CachedModeledFramework<T> cached(ExecutorService executor)
     {
         Preconditions.checkState(!isWatched, "CachedModeledFramework cannot be used with watched instances as the internal cache would bypass the watchers.");
-        return new CachedModeledFrameworkImpl<>(this, Objects.requireNonNull(executor, "executor cannot be null"));
+        return new CachedModeledFrameworkImpl<>(this, executor);
     }
 
     @Override

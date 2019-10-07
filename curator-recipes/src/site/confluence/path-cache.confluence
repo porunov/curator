@@ -1,5 +1,7 @@
 h1. Path Cache
 
+*Note: * PathChildrenCache has been deprecated for use in ZooKeeper 3.6\+. You should use [[Curator Cache|curator-cache.html]] instead.
+
 h2. Description
 A Path Cache is used to watch a ZNode. Whenever a child is added, updated or removed, the Path Cache will change its state to contain the current set of children, the children's data and the children's state.
 
