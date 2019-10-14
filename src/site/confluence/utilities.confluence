@@ -42,6 +42,23 @@ CuratorFramework client = CuratorFrameworkFactory.builder()
 // all connection state listeners set for "client" will get circuit breaking behavior
 {code}
 
+h2. Functional Watcher Builder and Helpers
+
+See: [[Watchers|curator-recipes/src/main/java/org/apache/curator/framework/recipes/watch/Watchers.java]] and
+[[WatcherHelpers|curator-recipes/src/main/java/org/apache/curator/framework/recipes/watch/WatcherHelpers.java]]
+
+Especially useful with the new Persistent/Recursive Watcher support, this builder and helpers allow creating Watchers from
+functional methods and utilities that chain together. E.g.
+
+{code}
+Watcher watcher = Watchers.filter(WatcherHelpers.filterNonSystemEvents())
+                          .map(WatcherHelpers::mapToPathAndNode)
+                          .process(pathAndNode -> {
+                              ... etc ...
+                          });
+... use the watcher in a Curator method ...
+{code}
+
 h2. Locker
 
 Curator's Locker uses Java 7's try\-with\-resources feature to making using Curator locks safer:
